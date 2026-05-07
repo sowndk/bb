@@ -73,6 +73,66 @@
     <link rel="stylesheet" href="css/modules/block_system.css">
     <link rel="stylesheet" href="css/modules/voice_selector.css">
     <link rel="stylesheet" href="css/modules/character_import.css">
+        <!-- ================= 针对 App 打包的沉浸式与键盘适配 ================= -->
+    <style>
+        /* 1. 适配顶部状态栏（刘海屏） */
+        .app-header {
+            /* 使用 env 变量获取系统状态栏高度，加上原本的内边距 */
+            padding-top: calc(env(safe-area-inset-top, 0px) + 10px) !important;
+            height: auto !important; 
+            min-height: calc(env(safe-area-inset-top, 0px) + 50px);
+        }
+        
+        /* 确保内容区不会被加高的头部遮挡 */
+        .phone-screen {
+            padding-top: 0 !important;
+        }
+
+        /* 2. 适配底部导航栏（小白条） */
+        .bottom-nav, .chat-input-wrapper {
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        }
+
+        /* 3. 修复 WebView 底部被系统键盘遮挡的绝对定位问题 */
+        body {
+            height: 100vh;
+            height: 100dvh; /* 使用动态视口高度，键盘弹出时自动缩小 */
+            overflow: hidden;
+        }
+        .phone-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+
+    <script>
+        // 4. 监听键盘弹出，强制将输入框顶起
+        window.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input, textarea');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    // 延时等待系统键盘完全弹出
+                    setTimeout(() => {
+                        // 让输入框自动滚动到可视区域的中央或底部
+                        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // 额外强制滚动一下聊天到底部
+                        const chatArea = document.getElementById('message-area');
+                        if(chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+                    }, 300);
+                });
+            });
+
+            // 监听窗口尺寸变化 (动态视口生效时)
+            window.visualViewport.addEventListener('resize', () => {
+                document.body.style.height = window.visualViewport.height + 'px';
+                const chatArea = document.getElementById('message-area');
+                if(chatArea) chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        });
+    </script>
+    <!-- ================================================================ -->
 </head>
 
 <body>
